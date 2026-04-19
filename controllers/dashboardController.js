@@ -12,16 +12,18 @@ const getDashboardStats = async (req, res) => {
       {
         $group: {
           _id: null,
-          avgFoodQuality:    { $avg: "$ratings.foodQuality" },
-          avgService:        { $avg: "$ratings.service" },
-          avgAmbiance:       { $avg: "$ratings.ambiance" },
-          avgEnvironment:    { $avg: "$ratings.environment" },
+          avgOverallExperience: { $avg: "$overallExperience" },
+          avgFoodQuality:       { $avg: "$ratings.foodQuality" },
+          avgService:           { $avg: "$ratings.service" },
+          avgAmbiance:          { $avg: "$ratings.ambiance" },
+          avgEnvironment:       { $avg: "$ratings.environment" },
         },
       },
     ]);
 
     let overallAverageRating = 0;
-    let breakdownAverages = {
+    let averageRatingBreakdown = {
+      overallExperience: 0,
       foodQuality: 0,
       service: 0,
       ambiance: 0,
@@ -31,14 +33,15 @@ const getDashboardStats = async (req, res) => {
     if (aggregation.length > 0) {
       const agg = aggregation[0];
 
-      breakdownAverages = {
-        foodQuality:  Number((agg.avgFoodQuality  ?? 0).toFixed(2)),
-        service:      Number((agg.avgService       ?? 0).toFixed(2)),
-        ambiance:     Number((agg.avgAmbiance      ?? 0).toFixed(2)),
-        environment:  Number((agg.avgEnvironment   ?? 0).toFixed(2)),
+      averageRatingBreakdown = {
+        overallExperience: Number((agg.avgOverallExperience ?? 0).toFixed(2)),
+        foodQuality:       Number((agg.avgFoodQuality ?? 0).toFixed(2)),
+        service:           Number((agg.avgService ?? 0).toFixed(2)),
+        ambiance:          Number((agg.avgAmbiance ?? 0).toFixed(2)),
+        environment:       Number((agg.avgEnvironment ?? 0).toFixed(2)),
       };
 
-      const fieldValues = Object.values(breakdownAverages);
+      const fieldValues = Object.values(averageRatingBreakdown);
       overallAverageRating = Number(
         (fieldValues.reduce((sum, val) => sum + val, 0) / fieldValues.length).toFixed(2)
       );
@@ -49,7 +52,7 @@ const getDashboardStats = async (req, res) => {
       data: {
         totalReviews,
         overallAverageRating,
-        averageRatingBreakdown: breakdownAverages,
+        averageRatingBreakdown,
       },
     });
   } catch (error) {

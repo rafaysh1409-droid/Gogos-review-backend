@@ -1,11 +1,335 @@
 {
   "info": {
     "name": "Gogo Backend API",
-    "description": "Postman collection for the customer review and dashboard modules.",
+    "description": "Postman collection for the auth, review, dashboard, and waiter modules.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "d3a89cda-7de4-4e9a-b8a0-a7350f72a1c1"
   },
   "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ali\",\n  \"lastName\": \"Rafay\",\n  \"email\": \"ali.rafay@example.com\",\n  \"password\": \"secret123\",\n  \"role\": 40\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            },
+            "description": "Register a new user. Role is optional and defaults to 40 (Customer). Roles: 10=Super Admin, 20=Admin, 40=Customer. Signup does not return tokens; use Login to get access and refresh tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ali.rafay@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. Returns accessToken (7d) and refreshToken (30d)."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"PUT_REFRESH_TOKEN_HERE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
+            },
+            "description": "Exchange a valid refresh token for a new access token and refresh token."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"secret123\",\n  \"newPassword\": \"newSecret456\",\n  \"confirmPassword\": \"newSecret456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            },
+            "description": "Change password for the authenticated user. Requires a valid Bearer token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Review",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ali Rafay\",\n  \"email\": \"ali.rafay@example.com\",\n  \"phone\": \"+1-234-567-8900\",\n  \"overallExperience\": 4,\n  \"likedMost\": [\"Food quality\", \"Service\", \"Ambience\"],\n  \"ratings\": {\n    \"foodQuality\": 5,\n    \"service\": 4,\n    \"ambiance\": 4,\n    \"environment\": 3\n  },\n  \"waiterDetails\": [\n    {\n      \"servedBy\": \"PUT_WAITER_ID_HERE\",\n      \"rateWaiter\": 5\n    }\n  ],\n  \"whatWentWrong\": [\"Cleanliness\"],\n  \"whatWentWrongDetails\": \"Could be cleaner in the restroom.\",\n  \"additionalComments\": \"Overall great experience! Will visit again.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews"]
+            },
+            "description": "Submit a new review (Customer only - role 40). Includes waiterDetails array with ServedBy waiter id and Rate Waiter (1-5). Waiter ratings are aggregated and updated in waiter records automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews?page=1&per_page=10&fetchby=PUT_WAITER_ID_HERE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "10" },
+                { "key": "fetchby", "value": "PUT_WAITER_ID_HERE" }
+              ]
+            },
+            "description": "Fetch paginated reviews (Admin/Super Admin only - roles 10, 20). Query params: page, per_page, and optional fetchby (waiter id) to fetch all review records by waiter. Requires a Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", ":id"],
+              "variable": [
+                { "key": "id", "value": "PUT_REVIEW_ID_HERE" }
+              ]
+            },
+            "description": "Fetch a single review by ID (Admin/Super Admin only - roles 10, 20). Requires a Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", ":id"],
+              "variable": [
+                { "key": "id", "value": "PUT_REVIEW_ID_HERE" }
+              ]
+            },
+            "description": "Delete a review by ID (Super Admin only - role 10). Requires a Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard"]
+            },
+            "description": "Returns total reviews and overall plus per-field average ratings (Admin/Super Admin only - roles 10, 20). Requires a Bearer token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Waiter",
+      "item": [
+        {
+          "name": "Create Waiter",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ahmed Raza\",\n  \"phone\": \"03123456789\",\n  \"isActive\": true,\n  \"leftOn\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters"]
+            },
+            "description": "Create a new waiter (Admin/Super Admin only - roles 10, 20). Fields: fullName, phone (exactly 11 digits), isActive, leftOn. joinedOn and createdBy are set automatically by the backend."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Waiters",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters?page=1&per_page=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "10" }
+              ]
+            },
+            "description": "Fetch paginated waiters (Admin/Super Admin only - roles 10, 20). Query params: page, per_page. Requires a Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Waiter Name-ID List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters/name-id-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters", "name-id-list"]
+            },
+            "description": "Fetch all created waiters with name and id only. Accessible to authenticated users (roles 10, 20, 40)."
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch Waiters By Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters/search/by-name?name=ahmed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters", "search", "by-name"],
+              "query": [
+                { "key": "name", "value": "ahmed" }
+              ]
+            },
+            "description": "Fetch waiters by full name search (partial, case-insensitive), returning name and id only. Accessible to authenticated users (roles 10, 20, 40)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Waiter By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters", ":id"],
+              "variable": [
+                { "key": "id", "value": "PUT_WAITER_ID_HERE" }
+              ]
+            },
+            "description": "Fetch a single waiter by ID (Admin/Super Admin only - roles 10, 20). Requires a Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Waiter Full Name",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ahmed Raza Khan\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters", ":id"],
+              "variable": [
+                { "key": "id", "value": "PUT_WAITER_ID_HERE" }
+              ]
+            },
+            "description": "Update waiter full name only (Admin/Super Admin only - roles 10, 20). Requires a Bearer token."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Waiter By ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/waiters/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "waiters", ":id"],
+              "variable": [
+                { "key": "id", "value": "PUT_WAITER_ID_HERE" }
+              ]
+            },
+            "description": "Delete waiter by ID (Admin/Super Admin only - roles 10, 20). Requires a Bearer token."
+          },
+          "response": []
+        }
+      ]
+    },
     {
       "name": "Health Check",
       "request": {
@@ -13,132 +337,10 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            ""
-          ]
+          "host": ["{{baseUrl}}"],
+          "path": [""]
         },
         "description": "Checks if backend server is running."
-      },
-      "response": []
-    },
-    {
-      "name": "Create Review",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"fullName\": \"Ali Rafay\",\n  \"email\": \"ali.rafay@example.com\",\n  \"comment\": \"Great food and service. Will definitely visit again.\",\n  \"ratings\": {\n    \"foodQuality\": 5,\n    \"service\": 4,\n    \"ambiance\": 4,\n    \"environment\": 3\n  }\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/reviews",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "reviews"
-          ]
-        },
-        "description": "Submits a customer review with ratings from 0 to 5."
-      },
-      "response": []
-    },
-    {
-      "name": "Get All Reviews",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/reviews",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "reviews"
-          ]
-        },
-        "description": "Fetches all submitted reviews."
-      },
-      "response": []
-    },
-    {
-      "name": "Get Review By ID",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/reviews/:id",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "reviews",
-            ":id"
-          ],
-          "variable": [
-            {
-              "key": "id",
-              "value": "PUT_REVIEW_ID_HERE"
-            }
-          ]
-        },
-        "description": "Fetches a single review by MongoDB review id."
-      },
-      "response": []
-    },
-    {
-      "name": "Delete Review",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/reviews/:id",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "reviews",
-            ":id"
-          ],
-          "variable": [
-            {
-              "key": "id",
-              "value": "PUT_REVIEW_ID_HERE"
-            }
-          ]
-        },
-        "description": "Deletes a single review by MongoDB review id."
-      },
-      "response": []
-    },
-    {
-      "name": "Get Dashboard Stats",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/dashboard",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "dashboard"
-          ]
-        },
-        "description": "Returns total number of reviews and overall + per-field average ratings."
       },
       "response": []
     }
