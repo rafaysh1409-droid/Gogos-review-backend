@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Gogo Backend API",
-    "description": "Postman collection for the auth, review, dashboard, and waiter modules.",
+    "description": "Postman collection for the auth, review, dashboard, waiter, and alert modules.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "d3a89cda-7de4-4e9a-b8a0-a7350f72a1c1"
   },
@@ -106,7 +106,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "reviews"]
             },
-            "description": "Submit a new review (Customer only - role 40). Includes waiterDetails array with ServedBy waiter id and Rate Waiter (1-5). Waiter ratings are aggregated and updated in waiter records automatically."
+            "description": "Submit a new review (Customer only - role 40). Includes waiterDetails array with ServedBy waiter id and Rate Waiter (1-5). Waiter ratings are aggregated and updated in waiter records automatically. If averageRating goes below 2, a realtime critical alert is created for Admin accounts only (role 20)."
           },
           "response": []
         },
@@ -325,6 +325,51 @@
               ]
             },
             "description": "Delete waiter by ID (Admin/Super Admin only - roles 10, 20). Requires a Bearer token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Get Pending Critical Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "pending"]
+            },
+            "description": "Fetch unresolved critical review alerts. Admin only (role 20). Use this on page load/reconnect so the frontend can reopen the blocking alert screen if an alert is still pending."
+          },
+          "response": []
+        },
+        {
+          "name": "Respond To Critical Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer PUT_ACCESS_TOKEN_HERE" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"responseMessage\": \"We are sorry for your experience. Our admin has reviewed your feedback and will contact you shortly.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/:id/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", ":id", "respond"],
+              "variable": [
+                { "key": "id", "value": "PUT_ALERT_ID_HERE" }
+              ]
+            },
+            "description": "Respond to a pending critical alert and unlock admin functionality. Admin only (role 20). A realtime resolved event is emitted after success."
           },
           "response": []
         }

@@ -1,5 +1,7 @@
 const Review = require("../models/Review");
 const Waiter = require("../models/Waiter");
+const CriticalAlert = require("../models/CriticalAlert");
+const { emitCriticalReviewAlert } = require("../services/socketService");
 const mongoose = require("mongoose");
 
 const calculateAverageRating = (overallExperience, ratings = {}) => {
@@ -55,6 +57,7 @@ const submitReview = async (req, res) => {
       name,
       email,
       phone,
+      submittedBy: req.user.id,
       overallExperience,
       likedMost,
       ratings,
@@ -100,12 +103,38 @@ const submitReview = async (req, res) => {
       reviewObject.ratings
     );
 
+    let criticalAlert = null;
+
+    if (averageRating < 2) {
+      criticalAlert = await CriticalAlert.create({
+        reviewId: review._id,
+        customerUserId: req.user.id,
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        averageRating,
+      });
+
+      emitCriticalReviewAlert({
+        id: criticalAlert._id,
+        reviewId: review._id,
+        averageRating,
+        status: criticalAlert.status,
+        customerUserId: req.user.id,
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        createdAt: criticalAlert.createdAt,
+      });
+    }
+
     return res.status(201).json({
       success: true,
       message: "Review submitted successfully.",
       data: {
         ...reviewObject,
         averageRating,
+        criticalAlertTriggered: Boolean(criticalAlert),
       },
     });
   } catch (error) {
