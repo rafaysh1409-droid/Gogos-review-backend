@@ -24,6 +24,11 @@ const reviewSchema = new mongoose.Schema(
       minlength: 10,
       maxlength: 20,
     },
+    submittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
     // Overall Experience (Required, 1-5)
     overallExperience: {
